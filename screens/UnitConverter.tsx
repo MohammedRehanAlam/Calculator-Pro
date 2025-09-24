@@ -5,22 +5,26 @@ import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-export const UnitConverter: React.FC = () => {
+interface UnitConverterProps {
+  onNavigate: (screen: string) => void;
+}
+
+export const UnitConverter: React.FC<UnitConverterProps> = ({ onNavigate }) => {
   const { colors } = useTheme();
 
   const converterItems = [
-    { icon: '🎂', text: 'Age' },
-    { icon: '📐', text: 'Area' },
-    { icon: '⚖️', text: 'BMI' },
-    { icon: '💾', text: 'Data' },
-    { icon: '📅', text: 'Date' },
-    { icon: '🏷️', text: 'Discount' },
-    { icon: '📏', text: 'Length' },
-    { icon: '⚖️', text: 'Mass' },
-    { icon: '🔢', text: 'Numeral' },
-    { icon: '🏃', text: 'Speed' },
-    { icon: '🌡️', text: 'Temperature' },
-    { icon: '⏰', text: 'Time' },
+    { icon: '🎂', text: 'Age', screen: 'age-converter' },
+    { icon: '📐', text: 'Area', screen: 'area-converter' },
+    { icon: '⚖️', text: 'BMI', screen: 'bmi-converter' },
+    { icon: '💾', text: 'Data', screen: 'data-converter' },
+    { icon: '📅', text: 'Date', screen: 'date-converter' },
+    { icon: '🏷️', text: 'Discount', screen: 'discount-converter' },
+    { icon: '📏', text: 'Length', screen: 'length-converter' },
+    { icon: '⚖️', text: 'Mass', screen: 'weight-converter' },
+    { icon: '🔢', text: 'Numeral', screen: 'numeral-converter' },
+    { icon: '🏃', text: 'Speed', screen: 'speed-converter' },
+    { icon: '🌡️', text: 'Temperature', screen: 'temperature-converter' },
+    { icon: '⏰', text: 'Time', screen: 'time-converter' },
   ];
 
   const styles = StyleSheet.create({
@@ -40,7 +44,7 @@ export const UnitConverter: React.FC = () => {
       justifyContent: 'space-between',
     },
     converterButton: {
-      width: screenWidth < 400 ? '30%' : '31%',
+      width: screenWidth < 400 ? '48.5%' : '48.5%',
       backgroundColor: colors.surface,
       borderRadius: 12, // 12px border radius
       padding: 12, // 12px padding
@@ -56,7 +60,7 @@ export const UnitConverter: React.FC = () => {
     converterText: {
       color: colors.text,
       fontSize: Typography.caption.fontSize,
-      fontWeight: '500',
+      fontWeight: '600',
       textAlign: 'center',
     },
   });
@@ -66,7 +70,11 @@ export const UnitConverter: React.FC = () => {
       <ScrollView style={styles.converterContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.converterGrid}>
           {converterItems.map((item, index) => (
-            <TouchableOpacity key={index} style={styles.converterButton}>
+            <TouchableOpacity 
+              key={index} 
+              style={styles.converterButton}
+              onPress={() => onNavigate(item.screen)}
+            >
               <Text style={styles.converterIcon}>{item.icon}</Text>
               <Text style={styles.converterText}>{item.text}</Text>
             </TouchableOpacity>
