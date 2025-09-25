@@ -2,15 +2,14 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-interface MoreOptionsProps {
-  onNavigate: (screen: string) => void;
-}
-
-export const MoreOptions: React.FC<MoreOptionsProps> = ({ onNavigate }) => {
+export const MoreOptions: React.FC = () => {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const options = [
     { icon: '📋', text: 'History', screen: 'history' },
@@ -20,6 +19,10 @@ export const MoreOptions: React.FC<MoreOptionsProps> = ({ onNavigate }) => {
     { icon: '📤', text: 'Export', screen: 'export' },
   ];
 
+  const handleNavigate = (screen: string) => {
+    router.push(`/${screen}` as any);
+  };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -28,7 +31,7 @@ export const MoreOptions: React.FC<MoreOptionsProps> = ({ onNavigate }) => {
     optionsContainer: {
       flex: 1,
       paddingHorizontal: 12, // 12px horizontal padding
-      paddingTop: 12, // 12px top padding
+      paddingTop: insets.top + 65 + 12, // Status bar + tab bar + 12px top padding
       paddingBottom: 16, // 16px bottom padding for scroll clearance
     },
     optionsList: {
@@ -69,7 +72,7 @@ export const MoreOptions: React.FC<MoreOptionsProps> = ({ onNavigate }) => {
             <TouchableOpacity
               key={index}
               style={styles.optionItem}
-              onPress={() => onNavigate(option.screen)}
+                onPress={() => handleNavigate(option.screen)}
             >
               <Text style={styles.optionIcon}>{option.icon}</Text>
               <Text style={styles.optionText}>{option.text}</Text>

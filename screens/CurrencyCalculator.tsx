@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
 import { Typography, Shadows } from '../constants/theme';
+import { router } from 'expo-router';
 
 // Storage keys for persistence
   const STORAGE_KEYS = {
@@ -656,7 +657,10 @@ export const CurrencyCalculator: React.FC = () => {
               {loading ? '...' : '🔄'}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.backButton}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
             <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
         </View>

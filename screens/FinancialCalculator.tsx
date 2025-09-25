@@ -2,15 +2,14 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-interface FinancialCalculatorProps {
-  onNavigate: (screen: string) => void;
-}
-
-export const FinancialCalculator: React.FC<FinancialCalculatorProps> = ({ onNavigate }) => {
+export const FinancialCalculator: React.FC = () => {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const financialItems = [
     { icon: '📊', text: 'GST', screen: 'gst-calculator' },
@@ -21,6 +20,10 @@ export const FinancialCalculator: React.FC<FinancialCalculatorProps> = ({ onNavi
     { icon: '💳', text: 'Credit', screen: 'credit-calculator' },
   ];
 
+  const handleNavigate = (screen: string) => {
+    router.push(`/${screen}` as any);
+  };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -29,7 +32,7 @@ export const FinancialCalculator: React.FC<FinancialCalculatorProps> = ({ onNavi
     financialContainer: {
       flex: 1,
       paddingHorizontal: 12, // 12px horizontal padding
-      paddingTop: 12, // 12px top padding
+      paddingTop: insets.top + 65 + 12, // Status bar + tab bar + 12px top padding
       paddingBottom: 16, // 16px bottom padding for scroll clearance
     },
     financialGrid: {
@@ -67,7 +70,7 @@ export const FinancialCalculator: React.FC<FinancialCalculatorProps> = ({ onNavi
             <TouchableOpacity 
               key={index} 
               style={styles.financialButton}
-              onPress={() => onNavigate(item.screen)}
+                        onPress={() => handleNavigate(item.screen)}
             >
               <Text style={styles.financialIcon}>{item.icon}</Text>
               <Text style={styles.financialText}>{item.text}</Text>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { router } from 'expo-router';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -45,31 +46,6 @@ export const BMIConverter: React.FC = () => {
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    screenHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 12, // 12px horizontal padding
-      paddingVertical: 8, // 8px vertical padding
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    screenTitle: {
-      color: colors.text,
-      fontSize: Typography.h4.fontSize,
-      fontWeight: Typography.h4.fontWeight,
-    },
-    backButton: {
-      backgroundColor: colors.primary,
-      paddingHorizontal: 8, // 8px horizontal padding
-      paddingVertical: 4, // 4px vertical padding
-      borderRadius: 8, // 8px border radius
-    },
-    backButtonText: {
-      color: colors.text,
-      fontSize: Typography.caption.fontSize,
-      fontWeight: Typography.captionBold.fontWeight,
     },
     converterContainer: {
       flex: 1,
@@ -158,13 +134,6 @@ export const BMIConverter: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.screenHeader}>
-        <Text style={styles.screenTitle}>BMI Calculator</Text>
-        <TouchableOpacity style={styles.backButton}>
-          <Text style={styles.backButtonText}>Back</Text>
-        </TouchableOpacity>
-      </View>
-      
       <ScrollView style={styles.converterContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Enter Weight</Text>

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { router } from 'expo-router';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -23,31 +24,6 @@ export const HistoryScreen: React.FC = () => {
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    screenHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 12, // 12px horizontal padding
-      paddingVertical: 12, // 8px vertical padding
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    screenTitle: {
-      color: colors.text,
-      fontSize: Typography.h4.fontSize,
-      fontWeight: Typography.h4.fontWeight,
-    },
-    clearButton: {
-      backgroundColor: colors.error,
-      paddingHorizontal: 8, // 8px horizontal padding
-      paddingVertical: 6, // 6px vertical padding
-      borderRadius: 8, // 8px border radius
-    },
-    clearButtonText: {
-      color: colors.text,
-      fontSize: Typography.caption.fontSize,
-      fontWeight: Typography.captionBold.fontWeight,
     },
     historyScreenContainer: {
       flex: 1,
@@ -87,12 +63,6 @@ export const HistoryScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.screenHeader}>
-        <Text style={styles.screenTitle}>Calculation History</Text>
-        <TouchableOpacity style={styles.clearButton}>
-          <Text style={styles.clearButtonText}>Clear All</Text>
-        </TouchableOpacity>
-      </View>
       <ScrollView style={styles.historyScreenContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.historyList}>
           {historyItems.map((item, index) => (

@@ -2,15 +2,14 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-interface UnitConverterProps {
-  onNavigate: (screen: string) => void;
-}
-
-export const UnitConverter: React.FC<UnitConverterProps> = ({ onNavigate }) => {
+export const UnitConverter: React.FC = () => {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const converterItems = [
     { icon: '🎂', text: 'Age', screen: 'age-converter' },
@@ -27,6 +26,10 @@ export const UnitConverter: React.FC<UnitConverterProps> = ({ onNavigate }) => {
     { icon: '⏰', text: 'Time', screen: 'time-converter' },
   ];
 
+  const handleNavigate = (screen: string) => {
+    router.push(`/${screen}` as any);
+  };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -35,7 +38,7 @@ export const UnitConverter: React.FC<UnitConverterProps> = ({ onNavigate }) => {
     converterContainer: {
       flex: 1,
       paddingHorizontal: 12, // 12px horizontal padding
-      paddingTop: 12, // 12px top padding
+      paddingTop: insets.top + 65 + 12, // Status bar + tab bar + 12px top padding
       paddingBottom: 16, // 16px bottom padding for scroll clearance
     },
     converterGrid: {
@@ -73,7 +76,7 @@ export const UnitConverter: React.FC<UnitConverterProps> = ({ onNavigate }) => {
             <TouchableOpacity 
               key={index} 
               style={styles.converterButton}
-              onPress={() => onNavigate(item.screen)}
+                        onPress={() => handleNavigate(item.screen)}
             >
               <Text style={styles.converterIcon}>{item.icon}</Text>
               <Text style={styles.converterText}>{item.text}</Text>

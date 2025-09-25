@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export const BasicCalculator: React.FC = () => {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const styles = StyleSheet.create({
@@ -15,9 +17,9 @@ export const BasicCalculator: React.FC = () => {
       backgroundColor: colors.background,
     },
     displayContainer: {
-      height: isExpanded ? '44%' : '44%', // 48% for scientific, 35% for basic
+      height: isExpanded ? '48%' : '49%', // 40% for basic scientific, 41% for basic
       paddingHorizontal: 16, // 16px horizontal padding
-      paddingTop: 8, // 8px top padding
+      paddingTop: insets.top + 65 + 12, // Status bar + tab bar + 12px top padding
       paddingBottom: 8, // 8px bottom padding
       justifyContent: 'flex-end',
     },
