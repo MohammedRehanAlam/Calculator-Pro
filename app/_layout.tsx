@@ -26,33 +26,148 @@ export default function RootLayout() {
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="length-converter" options={{ title: 'Length Converter' }} />
-            <Stack.Screen name="temperature-converter" options={{ title: 'Temperature Converter' }} />
-            <Stack.Screen name="weight-converter" options={{ title: 'Weight Converter' }} />
-            <Stack.Screen name="area-converter" options={{ title: 'Area Converter' }} />
-            <Stack.Screen name="speed-converter" options={{ title: 'Speed Converter' }} />
-            <Stack.Screen name="data-converter" options={{ title: 'Data Converter' }} />
-            <Stack.Screen name="age-converter" options={{ title: 'Age Converter' }} />
-            <Stack.Screen name="bmi-converter" options={{ title: 'BMI Converter' }} />
-            <Stack.Screen name="date-converter" options={{ title: 'Date Converter' }} />
-            <Stack.Screen name="discount-converter" options={{ title: 'Discount Converter' }} />
-            <Stack.Screen name="numeral-converter" options={{ title: 'Numeral Converter' }} />
-            <Stack.Screen name="time-converter" options={{ title: 'Time Converter' }} />
-            <Stack.Screen name="gst-calculator" options={{ title: 'GST Calculator' }} />
-            <Stack.Screen name="currency-calculator" options={{ title: 'Currency Calculator' }} />
-            <Stack.Screen name="investment-calculator" options={{ title: 'Investment Calculator' }} />
-            <Stack.Screen name="loan-calculator" options={{ title: 'Loan Calculator' }} />
-            <Stack.Screen name="mortgage-calculator" options={{ title: 'Mortgage Calculator' }} />
-            <Stack.Screen name="credit-calculator" options={{ title: 'Credit Calculator' }} />
-            <Stack.Screen name="history" options={{ title: 'History' }} />
-            <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-            <Stack.Screen name="about" options={{ title: 'About' }} />
-            <Stack.Screen name="reset" options={{ title: 'Reset' }} />
-            <Stack.Screen name="export" options={{ title: 'Export' }} />
+            <Stack.Screen name="length-converter" options={{ 
+              title: 'Length Converter',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="temperature-converter" options={{ 
+              title: 'Temperature Converter',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="weight-converter" options={{ 
+              title: 'Weight Converter',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="area-converter" options={{ 
+              title: 'Area Converter',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="speed-converter" options={{ 
+              title: 'Speed Converter',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="data-converter" options={{ 
+              title: 'Data Converter',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="age-converter" options={{ 
+              title: 'Age Converter',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="bmi-converter" options={{ 
+              title: 'BMI Converter',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="date-converter" options={{ 
+              title: 'Date Converter',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="discount-converter" options={{ 
+              title: 'Discount Converter',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="numeral-converter" options={{ 
+              title: 'Numeral Converter',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="time-converter" options={{ 
+              title: 'Time Converter',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="gst-calculator" options={{ 
+              title: 'GST Calculator',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="currency-calculator" options={{ 
+              title: 'Currency Calculator',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="investment-calculator" options={{ 
+              title: 'Investment Calculator',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="loan-calculator" options={{ 
+              title: 'Loan Calculator',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="mortgage-calculator" options={{ 
+              title: 'Mortgage Calculator',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="credit-calculator" options={{ 
+              title: 'Credit Calculator',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="history" options={{ 
+              title: 'History',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="settings" options={{ 
+              title: 'Settings',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="about" options={{ 
+              title: 'About',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="reset" options={{ 
+              title: 'Reset',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
+            <Stack.Screen name="export" options={{ 
+              title: 'Export',
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7'
+              }
+            }} />
           </Stack>
           <StatusBar 
             style={colorScheme === 'dark' ? 'light' : 'dark'} 
-            backgroundColor={colorScheme === 'dark' ? '#000000' : '#FFFFFF'}
+            backgroundColor={colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7' } // '#000000' : '#FFFFFF'}
             translucent={false}
           />
         </ThemeProvider>
