@@ -196,7 +196,7 @@ export const CreditCalculator: React.FC = () => {
           <Text style={styles.resultText}>₹{results.monthlyInterest}</Text>
         </View>
 
-        <View style={[styles.resultSection, { marginBottom: 16 }]}>
+        <View style={[styles.resultSection, { marginBottom: 65 }]}>
           <Text style={styles.resultLabel}>Pay-off Time (Months)</Text>
           <Text style={styles.resultText}>{results.payOffTime}</Text>
         </View>

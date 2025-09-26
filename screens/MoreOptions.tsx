@@ -1,11 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { Typography, Shadows } from '../constants/theme';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const { width: screenWidth } = Dimensions.get('window');
 
 export const MoreOptions: React.FC = () => {
   const { colors } = useTheme();
@@ -15,8 +14,6 @@ export const MoreOptions: React.FC = () => {
     { icon: '📋', text: 'History', screen: 'history' },
     { icon: '⚙️', text: 'Settings', screen: 'settings' },
     { icon: 'ℹ️', text: 'About', screen: 'about' },
-    { icon: '🔄', text: 'Reset', screen: 'reset' },
-    { icon: '📤', text: 'Export', screen: 'export' },
   ];
 
   const handleNavigate = (screen: string) => {
@@ -67,7 +64,7 @@ export const MoreOptions: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.optionsContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.optionsList}>
+        <View style={[styles.optionsList, { marginBottom: 155 }]}>
           {options.map((option, index) => (
             <TouchableOpacity
               key={index}

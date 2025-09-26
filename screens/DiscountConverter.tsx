@@ -194,7 +194,7 @@ export const DiscountConverter: React.FC = () => {
           <Text style={styles.resultText}>${results.finalPrice}</Text>
         </View>
 
-        <View style={[styles.resultSection, { marginBottom: 16 }]}>
+        <View style={[styles.resultSection, { marginBottom: 65 }]}>
           <Text style={styles.resultLabel}>You Save</Text>
           <Text style={styles.resultText}>${results.savings}</Text>
         </View>

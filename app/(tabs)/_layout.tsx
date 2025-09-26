@@ -22,7 +22,7 @@ export default function TabLayout() {
           top: insets.top,
           left: 0,
           right: 0,
-          height: 0, // 65,
+          height: 65,
           paddingBottom: 0,
           elevation: 0,
           shadowOpacity: 0,

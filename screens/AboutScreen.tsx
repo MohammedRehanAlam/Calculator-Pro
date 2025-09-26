@@ -1,18 +1,19 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
 
-const { width: screenWidth } = Dimensions.get('window');
 
 export const AboutScreen: React.FC = () => {
   const { colors } = useTheme();
 
   const features = [
-    { icon: '🔢', text: 'Basic Calculator with History' },
-    { icon: '📐', text: 'Unit Converter' },
-    { icon: '💰', text: 'Financial Calculator' },
-    { icon: '📤', text: 'Export & Share' },
+    { icon: '🔢', text: 'Basic Calculator with Scientific Functions' },
+    { icon: '📐', text: 'Unit Converter (Length, Weight, Temperature, etc.)' },
+    { icon: '💰', text: 'Financial Calculator (Loan, Investment, Mortgage)' },
+    { icon: '📋', text: 'Calculation History with Export' },
+    { icon: '⚙️', text: 'Customizable Settings (BODMAS/Left-to-Right)' },
+    { icon: '🎨', text: 'Dark/Light Theme Support' },
   ];
 
   const styles = StyleSheet.create({
@@ -22,13 +23,14 @@ export const AboutScreen: React.FC = () => {
     },
     aboutContainer: {
       flex: 1,
-      paddingHorizontal: 12, // 12px horizontal padding
-      paddingTop: 12, // 12px top padding
-      paddingBottom: 16, // 16px bottom padding for scroll clearance
+      paddingHorizontal: 16, // Increased padding for better spacing
+      paddingTop: 16, // Increased top padding
+      paddingBottom: 20, // Increased bottom padding
     },
     aboutHeader: {
       alignItems: 'center',
-      marginBottom: 16, // 16px margin bottom
+      marginBottom: 24, // Increased margin bottom
+      paddingHorizontal: 8, // Added horizontal padding
     },
     appIcon: {
       fontSize: 80, // 80px font size
@@ -39,47 +41,57 @@ export const AboutScreen: React.FC = () => {
       fontSize: Typography.h2.fontSize,
       fontWeight: Typography.h2.fontWeight,
       marginBottom: 4, // 4px margin bottom
+      textAlign: 'center', // Center align text
     },
     appVersion: {
       color: colors.textSecondary,
       fontSize: Typography.body.fontSize,
       fontWeight: '500',
+      textAlign: 'center', // Center align text
     },
     aboutSection: {
-      marginBottom: 16, // 16px margin bottom
+      marginBottom: 20, // Increased margin bottom
+      paddingHorizontal: 4, // Added horizontal padding
     },
     sectionTitle: {
       color: colors.text,
       fontSize: Typography.h4.fontSize,
       fontWeight: Typography.h4.fontWeight,
-      marginBottom: 8, // 8px margin bottom
-      paddingHorizontal: 2, // 2px horizontal padding
+      marginBottom: 12, // Increased margin bottom
+      textAlign: 'left', // Left align section titles
     },
     aboutText: {
       color: colors.text,
       fontSize: Typography.body.fontSize,
-      lineHeight: Typography.body.lineHeight,
+      lineHeight: Typography.body.lineHeight * 1.4, // Increased line height for better readability
       marginBottom: 8, // 8px margin bottom
+      textAlign: 'left', // Left align text
     },
     featureList: {
-      gap: 8, // 8px gap between items
+      gap: 12, // Increased gap between items
     },
     featureItem: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start', // Changed to flex-start for better alignment
       backgroundColor: colors.surface,
       borderRadius: BorderRadius.md,
       padding: Spacing.md,
+      marginBottom: 4, // Added margin bottom
       ...Shadows.sm,
     },
     featureIcon: {
       fontSize: 24,
       marginRight: Spacing.md,
+      marginTop: 2, // Added top margin for better alignment
+      flexShrink: 0, // Prevent icon from shrinking
     },
     featureText: {
       color: colors.text,
       fontSize: Typography.body.fontSize,
       fontWeight: '500',
+      flex: 1, // Take remaining space
+      lineHeight: Typography.body.lineHeight * 1.3, // Increased line height
+      textAlign: 'left', // Left align text
     },
     supportButton: {
       backgroundColor: colors.surface,
@@ -93,6 +105,7 @@ export const AboutScreen: React.FC = () => {
       color: colors.text,
       fontSize: Typography.body.fontSize,
       fontWeight: '600',
+      textAlign: 'center', // Center align button text
     },
   });
 
@@ -100,7 +113,7 @@ export const AboutScreen: React.FC = () => {
     <View style={styles.container}>
       <ScrollView style={styles.aboutContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.aboutHeader}>
-          <Text style={styles.appIcon}>🧮</Text>
+          {/* <Text style={styles.appIcon}>🧮</Text> */}
           <Text style={styles.appName}>Calculator Pro</Text>
           <Text style={styles.appVersion}>Version 1.0.0</Text>
         </View>
@@ -109,8 +122,8 @@ export const AboutScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>About This App</Text>
           <Text style={styles.aboutText}>
             Calculator Pro is a comprehensive calculator application designed for everyday calculations, 
-            unit conversions, and financial computations. Built with React Native and Expo, it provides 
-            a modern, intuitive interface for all your mathematical needs.
+            unit conversions, and financial computations. It provides a modern, 
+            intuitive interface for all your mathematical needs.
           </Text>
         </View>
 
@@ -134,7 +147,7 @@ export const AboutScreen: React.FC = () => {
           </Text>
         </View>
 
-        <View style={styles.aboutSection}>
+        <View style={[styles.aboutSection, { marginBottom: 65 }]}>
           <Text style={styles.sectionTitle}>Support</Text>
           <TouchableOpacity style={styles.supportButton}>
             <Text style={styles.supportButtonText}>Contact Support</Text>

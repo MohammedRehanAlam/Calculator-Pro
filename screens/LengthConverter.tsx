@@ -186,7 +186,7 @@ export const LengthConverter: React.FC = () => {
           </View>
         </View>
 
-        <View style={[styles.resultSection, { marginBottom: 16 }]}>
+        <View style={[styles.resultSection, { marginBottom: 65 }]}>
           <Text style={styles.inputLabel}>Result</Text>
           <Text style={styles.resultText}>{getResult()} {lengthUnits.find(u => u.name === toUnit)?.symbol}</Text>
         </View>

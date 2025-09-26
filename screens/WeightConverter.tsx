@@ -185,7 +185,7 @@ export const WeightConverter: React.FC = () => {
           </View>
         </View>
 
-        <View style={styles.resultSection}>
+        <View style={[styles.resultSection, { marginBottom: 65 }]}>
           <Text style={styles.inputLabel}>Result</Text>
           <Text style={styles.resultText}>{getResult()} {weightUnits.find(u => u.name === toUnit)?.symbol}</Text>
         </View>

@@ -610,7 +610,7 @@ export const AgeConverter: React.FC = () => {
           </View>
         </View>
 
-        <View style={[styles.resultSection, { marginBottom: 16 }]}>
+        <View style={[styles.resultSection, { marginBottom: 65 }]}>
           <Text style={styles.inputLabel}>Result</Text>
           <Text style={styles.resultText}>
             {getAgeInPreferredUnit()} {ageUnits.find(u => u.name === toUnit)?.symbol}

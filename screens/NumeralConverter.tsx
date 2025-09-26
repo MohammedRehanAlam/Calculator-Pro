@@ -193,7 +193,7 @@ export const NumeralConverter: React.FC = () => {
           <Text style={styles.resultText}>{results.decimal}</Text>
         </View>
 
-        <View style={[styles.resultSection, { marginBottom: 16 }]}>
+        <View style={[styles.resultSection, { marginBottom: 65 }]}>
           <Text style={styles.resultLabel}>Hexadecimal (Base 16)</Text>
           <Text style={styles.resultText}>{results.hex}</Text>
         </View>

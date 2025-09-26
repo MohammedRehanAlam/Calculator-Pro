@@ -167,7 +167,7 @@ export const GSTCalculator: React.FC = () => {
           <Text style={styles.resultText}>₹{results.gstAmount}</Text>
         </View>
 
-        <View style={[styles.resultSection, { marginBottom: 16 }]}>
+        <View style={[styles.resultSection, { marginBottom: 65 }]}>
           <Text style={styles.resultLabel}>Total Amount</Text>
           <Text style={styles.resultText}>₹{results.totalAmount}</Text>
         </View>

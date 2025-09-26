@@ -757,7 +757,7 @@ export const CurrencyCalculator: React.FC = () => {
           </ScrollView>
         </View>
 
-        <View style={[styles.resultSection, { marginBottom: 16 }]}>
+        <View style={[styles.resultSection, { marginBottom: 65 }]}>
           <Text style={styles.resultLabel}>Converted Amount</Text>
           <Text style={styles.resultText}>
             {currencies.find(c => c.code === toCurrency)?.symbol}{result}

@@ -18,12 +18,16 @@ export const UnitConverter: React.FC = () => {
     { icon: '💾', text: 'Data', screen: 'data-converter' },
     { icon: '📅', text: 'Date', screen: 'date-converter' },
     { icon: '🏷️', text: 'Discount', screen: 'discount-converter' },
+    { icon: '⚡', text: 'Energy', screen: 'energy-converter' },
     { icon: '📏', text: 'Length', screen: 'length-converter' },
     { icon: '⚖️', text: 'Mass', screen: 'weight-converter' },
     { icon: '🔢', text: 'Numeral', screen: 'numeral-converter' },
+    { icon: '🌡️', text: 'Pressure', screen: 'pressure-converter' },
     { icon: '🏃', text: 'Speed', screen: 'speed-converter' },
     { icon: '🌡️', text: 'Temperature', screen: 'temperature-converter' },
     { icon: '⏰', text: 'Time', screen: 'time-converter' },
+    { icon: '📦', text: 'Volume', screen: 'volume-converter' },
+    { icon: '📊', text: 'Graphing', screen: 'graphing-calculator' },
   ];
 
   const handleNavigate = (screen: string) => {
@@ -71,7 +75,7 @@ export const UnitConverter: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.converterContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.converterGrid}>
+        <View style={[styles.converterGrid, { marginBottom: 155 }]}>
           {converterItems.map((item, index) => (
             <TouchableOpacity 
               key={index} 

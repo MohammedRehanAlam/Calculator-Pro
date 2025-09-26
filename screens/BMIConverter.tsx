@@ -241,7 +241,7 @@ export const BMIConverter: React.FC = () => {
           </View>
         </View>
 
-        <View style={[styles.resultSection, { marginBottom: 16 }]}>
+        <View style={[styles.resultSection, { marginBottom: 65 }]}>
           <Text style={styles.inputLabel}>BMI Result</Text>
           <Text style={styles.resultText}>{bmi}</Text>
           <Text style={styles.categoryText}>Category: {category}</Text>

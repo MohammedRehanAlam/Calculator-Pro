@@ -18,6 +18,9 @@ export const FinancialCalculator: React.FC = () => {
     { icon: '💰', text: 'Loan', screen: 'loan-calculator' },
     { icon: '🏦', text: 'Mortgage', screen: 'mortgage-calculator' },
     { icon: '💳', text: 'Credit', screen: 'credit-calculator' },
+    { icon: '📊', text: 'Compound Interest', screen: 'compound-interest-calculator' },
+    { icon: '🏖️', text: 'Retirement Planning', screen: 'retirement-planning-calculator' },
+    { icon: '🧾', text: 'Tax Calculator', screen: 'tax-calculator' },
   ];
 
   const handleNavigate = (screen: string) => {
@@ -65,7 +68,7 @@ export const FinancialCalculator: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.financialContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.financialGrid}>
+        <View style={[styles.financialGrid, { marginBottom: 155 }]}>
           {financialItems.map((item, index) => (
             <TouchableOpacity 
               key={index} 
