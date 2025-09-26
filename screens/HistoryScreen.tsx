@@ -79,8 +79,8 @@ export const HistoryScreen: React.FC = () => {
         .join('\n\n');
 
       await Share.share({
-        message: `My Calculator History:\n\n${shareText}`,
-        title: 'Calculator History'
+        message: `My Calculator Pro History:\n\n${shareText}`,
+        title: 'Calculator Pro History'
       });
     } catch (error) {
       console.error('Error sharing history:', error);
