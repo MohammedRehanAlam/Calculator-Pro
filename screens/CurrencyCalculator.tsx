@@ -645,7 +645,7 @@ export const CurrencyCalculator: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.screenHeader}>
+      {/* <View style={styles.screenHeader}>
         <Text style={styles.screenTitle}>Currency Calculator</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity 
@@ -664,7 +664,7 @@ export const CurrencyCalculator: React.FC = () => {
             <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </View> */}
       
       <ScrollView style={styles.calculatorContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.currencySelector}>

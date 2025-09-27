@@ -12,7 +12,7 @@ export const SettingsScreen: React.FC = () => {
   
   // Settings state
   const [calculationMode, setCalculationMode] = useState<'bodmas' | 'left-to-right'>('left-to-right');
-  const [hapticFeedback, setHapticFeedback] = useState(true);
+  const [numberLayout, setNumberLayout] = useState<'calculator' | 'keypad'>('keypad');
 
   // Load settings on component mount
   useEffect(() => {
@@ -22,7 +22,7 @@ export const SettingsScreen: React.FC = () => {
   const loadSettings = async () => {
     try {
       const savedMode = await AsyncStorage.getItem('calculation-mode');
-      const savedHaptic = await AsyncStorage.getItem('haptic-feedback');
+      const savedLayout = await AsyncStorage.getItem('number-layout');
 
       // Set default to 'left-to-right' if no saved mode exists
       if (savedMode) {
@@ -34,7 +34,15 @@ export const SettingsScreen: React.FC = () => {
         setCalculationMode('left-to-right');
       }
       
-      if (savedHaptic !== null) setHapticFeedback(JSON.parse(savedHaptic));
+      // Set default to 'keypad' if no saved layout exists
+      if (savedLayout) {
+        const parsedLayout = JSON.parse(savedLayout) as 'calculator' | 'keypad';
+        setNumberLayout(parsedLayout);
+      } else {
+        // Save the default layout to storage
+        await AsyncStorage.setItem('number-layout', JSON.stringify('keypad'));
+        setNumberLayout('keypad');
+      }
     } catch (error) {
       console.error('Failed to load settings:', error);
     }
@@ -53,10 +61,9 @@ export const SettingsScreen: React.FC = () => {
     saveSetting('calculation-mode', mode);
   };
 
-  const handleHapticFeedbackToggle = () => {
-    const newValue = !hapticFeedback;
-    setHapticFeedback(newValue);
-    saveSetting('haptic-feedback', newValue);
+  const handleNumberLayoutChange = (layout: 'calculator' | 'keypad') => {
+    setNumberLayout(layout);
+    saveSetting('number-layout', layout);
   };
 
   const handleThemeModeChange = (mode: ThemeMode) => {
@@ -198,44 +205,48 @@ export const SettingsScreen: React.FC = () => {
             <View style={styles.settingItem}>
               <Text style={styles.settingText}>Calculation Mode</Text>
             </View>
-            <View style={styles.modeSelector}>
-              <TouchableOpacity 
-                style={[
-                  styles.modeOption,
-                  calculationMode === 'bodmas' && styles.modeOptionActive
-                ]}
-                onPress={() => handleCalculationModeChange('bodmas')}
-              >
-                <Text style={[
-                  styles.modeOptionText,
-                  calculationMode === 'bodmas' && styles.modeOptionTextActive
-                ]}>
-                  BODMAS
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[
-                  styles.modeOption,
-                  calculationMode === 'left-to-right' && styles.modeOptionActive
-                ]}
-                onPress={() => handleCalculationModeChange('left-to-right')}
-              >
-                <Text style={[
-                  styles.modeOptionText,
-                  calculationMode === 'left-to-right' && styles.modeOptionTextActive
-                ]}>
-                  Left to Right
-                </Text>
-              </TouchableOpacity>
+            <View style={styles.settingItem}>
+              <View style={styles.modeSelector}>
+                <TouchableOpacity 
+                  style={[
+                    styles.modeOption,
+                    calculationMode === 'bodmas' && styles.modeOptionActive
+                  ]}
+                  onPress={() => handleCalculationModeChange('bodmas')}
+                >
+                  <Text style={[
+                    styles.modeOptionText,
+                    calculationMode === 'bodmas' && styles.modeOptionTextActive
+                  ]}>
+                    BODMAS
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[
+                    styles.modeOption,
+                    calculationMode === 'left-to-right' && styles.modeOptionActive
+                  ]}
+                  onPress={() => handleCalculationModeChange('left-to-right')}
+                >
+                  <Text style={[
+                    styles.modeOptionText,
+                    calculationMode === 'left-to-right' && styles.modeOptionTextActive
+                  ]}>
+                    Left to Right
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
 
         <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>Display</Text>
+          {/* <Text style={styles.sectionTitle}>Display</Text> */}
           <View style={styles.settingsList}>
             <View style={styles.settingItem}>
-              <Text style={styles.settingText}>Theme</Text>
+              <Text style={styles.settingText}>Theme Mode</Text>
+            </View>
+            <View style={styles.settingItem}>
               <View style={styles.modeSelector}>
                 <TouchableOpacity 
                   style={[
@@ -281,20 +292,46 @@ export const SettingsScreen: React.FC = () => {
                 </TouchableOpacity>
               </View>
             </View>
+          </View>
+        </View>
+
+        <View style={styles.settingsSection}>
+          {/* <Text style={styles.sectionTitle}>Display</Text> */}
+          <View style={styles.settingsList}>
             <View style={styles.settingItem}>
-              <Text style={styles.settingText}>Haptic Feedback</Text>
-              <TouchableOpacity 
-                style={[
-                  styles.toggleSwitch,
-                  hapticFeedback && styles.toggleSwitchActive
-                ]}
-                onPress={handleHapticFeedbackToggle}
-              >
-                <View style={[
-                  styles.toggleActive,
-                  hapticFeedback && styles.toggleActiveActive
-                ]} />
-              </TouchableOpacity>
+              <Text style={styles.settingText}>Number Layout</Text>
+            </View>
+            <View style={styles.settingItem}>
+              <View style={styles.modeSelector}>
+                <TouchableOpacity 
+                  style={[
+                    styles.modeOption,
+                    numberLayout === 'calculator' && styles.modeOptionActive
+                  ]}
+                  onPress={() => handleNumberLayoutChange('calculator')}
+                >
+                  <Text style={[
+                    styles.modeOptionText,
+                    numberLayout === 'calculator' && styles.modeOptionTextActive
+                  ]}>
+                    Calculator
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[
+                    styles.modeOption,
+                    numberLayout === 'keypad' && styles.modeOptionActive
+                  ]}
+                  onPress={() => handleNumberLayoutChange('keypad')}
+                >
+                  <Text style={[
+                    styles.modeOptionText,
+                    numberLayout === 'keypad' && styles.modeOptionTextActive
+                  ]}>
+                    Keypad
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>

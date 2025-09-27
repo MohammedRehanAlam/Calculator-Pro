@@ -12,7 +12,7 @@ import { HistoryProvider } from '../contexts/HistoryContext';
 
 // Component to handle status bar and system UI based on theme
 function AppContent() {
-  const { isDark } = useTheme();
+  const { colors, isDark } = useTheme();
 
   // Configure system UI for solid navigation bar
   React.useEffect(() => {
@@ -24,7 +24,12 @@ function AppContent() {
   return (
     <>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{
+          headerShown: false,
+          headerStyle: {
+            backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7'  
+          }
+        }} />
         <Stack.Screen name="length-converter" options={{ 
           title: 'Length Converter',
           headerStyle: {

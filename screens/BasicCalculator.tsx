@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ScrollView } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useHistory } from '../contexts/HistoryContext';
 import { Shadows } from '../constants/theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Haptics from 'expo-haptics';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export const BasicCalculator: React.FC = () => {
   const { colors } = useTheme();
   const { addToHistory } = useHistory();
-  const insets = useSafeAreaInsets();
   const [isExpanded, setIsExpanded] = useState(false);
   
   // Calculator state
@@ -22,19 +20,28 @@ export const BasicCalculator: React.FC = () => {
   const [expression, setExpression] = useState('0');
   const [showingResult, setShowingResult] = useState(false);
   const [calculationMode, setCalculationMode] = useState<'bodmas' | 'left-to-right'>('left-to-right');
-  const [hapticFeedback, setHapticFeedback] = useState(true);
+  const [numberLayout, setNumberLayout] = useState<'calculator' | 'keypad'>('keypad');
 
   // Load settings on component mount
   useEffect(() => {
     loadCalculationMode();
-    loadHapticSetting();
+    loadNumberLayout();
   }, []);
+
+  // Reload settings when screen comes into focus (when user returns from settings)
+  useFocusEffect(
+    React.useCallback(() => {
+      loadCalculationMode();
+      loadNumberLayout();
+    }, [])
+  );
 
   const loadCalculationMode = async () => {
     try {
       const savedMode = await AsyncStorage.getItem('calculation-mode');
       if (savedMode) {
-        setCalculationMode(savedMode as 'bodmas' | 'left-to-right');
+        const parsedMode = JSON.parse(savedMode) as 'bodmas' | 'left-to-right';
+        setCalculationMode(parsedMode);
       } else {
         // Set default to 'left-to-right' if no saved mode exists
         setCalculationMode('left-to-right');
@@ -45,32 +52,21 @@ export const BasicCalculator: React.FC = () => {
     }
   };
 
-  const loadHapticSetting = async () => {
+  const loadNumberLayout = async () => {
     try {
-      const savedHaptic = await AsyncStorage.getItem('haptic-feedback');
-      if (savedHaptic !== null) {
-        setHapticFeedback(JSON.parse(savedHaptic));
+      const savedLayout = await AsyncStorage.getItem('number-layout');
+      if (savedLayout) {
+        setNumberLayout(JSON.parse(savedLayout) as 'calculator' | 'keypad');
+      } else {
+        // Set default to 'keypad' if no saved layout exists
+        setNumberLayout('keypad');
+        await AsyncStorage.setItem('number-layout', JSON.stringify('keypad'));
       }
     } catch (error) {
-      console.error('Failed to load haptic setting:', error);
+      console.error('Failed to load number layout:', error);
     }
   };
 
-  const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'light') => {
-    if (hapticFeedback) {
-      switch (type) {
-        case 'light':
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          break;
-        case 'medium':
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          break;
-        case 'heavy':
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-          break;
-      }
-    }
-  };
   
   // Scientific calculator state
   const [isSecondFunction, setIsSecondFunction] = useState(false);
@@ -79,7 +75,6 @@ export const BasicCalculator: React.FC = () => {
 
   // Calculator functions
   const inputNumber = (num: string) => {
-    triggerHaptic('light');
     
     if (showingResult) {
       setExpression(num);
@@ -105,7 +100,6 @@ export const BasicCalculator: React.FC = () => {
   };
 
   const inputDecimal = () => {
-    triggerHaptic('light');
     
     if (showingResult) {
       setExpression('0.');
@@ -132,7 +126,6 @@ export const BasicCalculator: React.FC = () => {
   };
 
   const clear = () => {
-    triggerHaptic('medium');
     setDisplay('0');
     setOperationDisplay('');
     setIsCalculationComplete(false);
@@ -141,7 +134,6 @@ export const BasicCalculator: React.FC = () => {
   };
 
   const backspace = () => {
-    triggerHaptic('light');
     
     if (showingResult) {
       clear();
@@ -231,14 +223,31 @@ export const BasicCalculator: React.FC = () => {
     return { valid: true };
   };
 
-  // BODMAS evaluation
+  // BODMAS evaluation with proper operator precedence
   const evaluateBODMAS = (expr: string): number | string => {
     try {
+      // Handle parentheses first
+      let processedExpr = expr;
+      while (processedExpr.includes('(')) {
+        const openIndex = processedExpr.lastIndexOf('(');
+        const closeIndex = processedExpr.indexOf(')', openIndex);
+        if (closeIndex === -1) throw new Error("Mismatched parentheses");
+        
+        const innerExpr = processedExpr.substring(openIndex + 1, closeIndex);
+        const innerResult = evaluateBODMAS(innerExpr);
+        if (typeof innerResult === 'string') return innerResult;
+        
+        processedExpr = processedExpr.substring(0, openIndex) + 
+                       innerResult.toString() + 
+                       processedExpr.substring(closeIndex + 1);
+      }
+      
+      // Now evaluate without parentheses using proper precedence
       const precedence = { '+': 1, '-': 1, '×': 2, '÷': 2, '%': 2, '^': 3 };
-      const associativity = { '^': 'Right', '+': 'Left', '-': 'Left', '×': 'Left', '÷': 'Left', '%': 'Left' };
-      const tokens = expr.match(/(\d+\.?\d*)|([+\-×÷%^()])/g);
+      const tokens = processedExpr.match(/(\d+\.?\d*)|([+\-×÷%^])/g);
       if (!tokens) return 0;
       
+      // Convert to postfix notation using Shunting Yard algorithm
       const outputQueue: (number | string)[] = [];
       const operatorStack: string[] = [];
 
@@ -248,19 +257,12 @@ export const BasicCalculator: React.FC = () => {
         } else if ("+-×÷%^".includes(token)) {
           while (
             operatorStack.length &&
-            precedence[operatorStack[operatorStack.length - 1] as keyof typeof precedence] >= precedence[token as keyof typeof precedence] &&
-            associativity[token as keyof typeof associativity] === 'Left'
+            operatorStack[operatorStack.length - 1] !== '(' &&
+            precedence[operatorStack[operatorStack.length - 1] as keyof typeof precedence] >= precedence[token as keyof typeof precedence]
           ) {
             outputQueue.push(operatorStack.pop()!);
           }
           operatorStack.push(token);
-        } else if (token === '(') {
-          operatorStack.push(token);
-        } else if (token === ')') {
-          while (operatorStack.length && operatorStack[operatorStack.length - 1] !== '(') {
-            outputQueue.push(operatorStack.pop()!);
-          }
-          operatorStack.pop();
         }
       });
 
@@ -268,6 +270,7 @@ export const BasicCalculator: React.FC = () => {
         outputQueue.push(operatorStack.pop()!);
       }
 
+      // Evaluate postfix expression
       const evaluationStack: number[] = [];
       outputQueue.forEach(token => {
         if (typeof token === 'number') {
@@ -287,58 +290,273 @@ export const BasicCalculator: React.FC = () => {
       });
 
       return evaluationStack[0];
-    } catch {
+    } catch (error) {
+      console.error('BODMAS evaluation error:', error);
       return "Error";
     }
   };
 
-  // Left-to-right evaluation
+  // Left-to-right evaluation (strict order without precedence)
   const evaluateLeftToRight = (expr: string): number | string => {
     try {
-      const tokens = expr.match(/(\d+\.?\d*)|([+\-×÷%^])/g) || [];
-      if (tokens.length === 0) return 0;
+      // Handle parentheses first (but evaluate left-to-right within them)
+      let processedExpr = expr;
+      while (processedExpr.includes('(')) {
+        const openIndex = processedExpr.lastIndexOf('(');
+        const closeIndex = processedExpr.indexOf(')', openIndex);
+        if (closeIndex === -1) {
+          throw new Error("Mismatched parentheses");
+        }
+        
+        const innerExpr = processedExpr.substring(openIndex + 1, closeIndex);
+        const innerResult = evaluateLeftToRight(innerExpr);
+        if (typeof innerResult === 'string') return innerResult;
+        
+        processedExpr = processedExpr.substring(0, openIndex) + 
+                       innerResult.toString() + 
+                       processedExpr.substring(closeIndex + 1);
+      }
+      
+      // Handle negative numbers at the start
+      let processedExprForTokens = processedExpr;
+      let isNegative = false;
+      
+      if (processedExpr.startsWith('-')) {
+        isNegative = true;
+        processedExprForTokens = processedExpr.substring(1);
+      }
+      
+      // Now evaluate left-to-right without precedence
+      const tokens = processedExprForTokens.match(/(\d+\.?\d*)|([+\-×÷%^])/g) || [];
+      
+      if (tokens.length === 0) {
+        return 0;
+      }
+      
       let result = parseFloat(tokens[0] ?? '0');
+      if (isNegative) {
+        result = -result;
+      }
+      
       for (let i = 1; i < tokens.length; i += 2) {
         const operator = tokens[i];
         const nextNumber = parseFloat(tokens[i + 1] ?? '0');
+        
         switch (operator) {
           case '+': result += nextNumber; break;
           case '-': result -= nextNumber; break;
           case '×': result *= nextNumber; break;
-          case '÷': if (nextNumber === 0) throw new Error("Div by 0"); result /= nextNumber; break;
+          case '÷': 
+            if (nextNumber === 0) {
+              throw new Error("Div by 0");
+            }
+            result /= nextNumber; 
+            break;
           case '%': result %= nextNumber; break;
           case '^': result = Math.pow(result, nextNumber); break;
         }
       }
+      
       return result;
-    } catch {
+    } catch (error) {
+      console.error('Left-to-Right evaluation error:', error);
       return "Error";
     }
   };
 
-  const evaluateExpression = (expr: string): number | string => {
+  // Convert constants to their numeric values for evaluation
+  const convertConstantsToNumbers = (expr: string): string => {
+    return expr
+      .replace(/π/g, Math.PI.toString())
+      .replace(/e/g, Math.E.toString());
+  };
+
+  // Enhanced evaluation function with proper mode handling for scientific functions
+  const evaluateWithScientificFunctions = (expr: string): number | string => {
     try {
-      if (/[+\-×÷%^]$/.test(expr)) {
-        expr = expr.slice(0, -1);
+      // First, convert constants to numbers
+      let processedExpr = convertConstantsToNumbers(expr);
+      
+      // Handle scientific functions with recursive evaluation respecting calculation mode
+      processedExpr = processedExpr
+        .replace(/sin\(([^)]+)\)/g, (match, value) => {
+          // Evaluate the expression inside sin() using the current calculation mode
+          const innerResult = evaluateBasicExpression(value);
+          
+          if (typeof innerResult === 'string') {
+            return innerResult;
+          }
+          
+          const radians = isDegreeMode ? (innerResult * Math.PI) / 180 : innerResult;
+          const result = Math.sin(radians);
+          // Round to avoid floating point precision issues
+          const rounded = Math.round(result * 1e15) / 1e15;
+          return rounded.toString();
+        })
+        .replace(/cos\(([^)]+)\)/g, (match, value) => {
+          // Evaluate the expression inside cos() using the current calculation mode
+          const innerResult = evaluateBasicExpression(value);
+          if (typeof innerResult === 'string') return innerResult;
+          
+          const radians = isDegreeMode ? (innerResult * Math.PI) / 180 : innerResult;
+          const result = Math.cos(radians);
+          // Round to avoid floating point precision issues
+          const rounded = Math.round(result * 1e15) / 1e15;
+          return rounded.toString();
+        })
+        .replace(/tan\(([^)]+)\)/g, (match, value) => {
+          // Evaluate the expression inside tan() using the current calculation mode
+          const innerResult = evaluateBasicExpression(value);
+          if (typeof innerResult === 'string') return innerResult;
+          
+          const radians = isDegreeMode ? (innerResult * Math.PI) / 180 : innerResult;
+          const result = Math.tan(radians);
+          // Round to avoid floating point precision issues
+          const rounded = Math.round(result * 1e15) / 1e15;
+          return rounded.toString();
+        })
+        .replace(/log\(([^)]+)\)/g, (match, value) => {
+          // Evaluate the expression inside log() using the current calculation mode
+          const innerResult = evaluateBasicExpression(value);
+          if (typeof innerResult === 'string') return innerResult;
+          
+          const result = Math.log10(innerResult);
+          return result.toString();
+        })
+        .replace(/ln\(([^)]+)\)/g, (match, value) => {
+          // Evaluate the expression inside ln() using the current calculation mode
+          const innerResult = evaluateBasicExpression(value);
+          if (typeof innerResult === 'string') return innerResult;
+          
+          const result = Math.log(innerResult);
+          return result.toString();
+        })
+        .replace(/√([^)]+)/g, (match, value) => {
+          // Evaluate the expression inside √ using the current calculation mode
+          const innerResult = evaluateBasicExpression(value);
+          if (typeof innerResult === 'string') return innerResult;
+          
+          const result = Math.sqrt(innerResult);
+          return result.toString();
+        })
+        .replace(/([^)]+)!/g, (match, value) => {
+          // Evaluate the expression before ! using the current calculation mode
+          const innerResult = evaluateBasicExpression(value);
+          if (typeof innerResult === 'string') return innerResult;
+          
+          const n = Math.floor(innerResult);
+          if (n < 0 || n > 170) return "Error";
+          let result = 1;
+          for (let i = 2; i <= n; i++) {
+            result *= i;
+          }
+          return result.toString();
+        })
+        .replace(/1\/([^)]+)/g, (match, value) => {
+          // Evaluate the expression after 1/ using the current calculation mode
+          const innerResult = evaluateBasicExpression(value);
+          if (typeof innerResult === 'string') return innerResult;
+          
+          const result = innerResult !== 0 ? (1 / innerResult) : Infinity;
+          return result.toString();
+        });
+      
+      // For simple expressions with just one number, return it directly
+      if (/^\d+\.?\d*$/.test(processedExpr)) {
+        const result = parseFloat(processedExpr);
+        return result;
       }
+      
+      // Now evaluate the processed expression with the selected calculation mode
       let result;
       if (calculationMode === 'bodmas') {
-        result = evaluateBODMAS(expr);
+        result = evaluateBODMAS(processedExpr);
       } else {
-        result = evaluateLeftToRight(expr);
+        result = evaluateLeftToRight(processedExpr);
       }
 
       if (typeof result !== 'number' || !isFinite(result)) {
         return "Error";
       }
       return parseFloat(result.toPrecision(12));
+    } catch (error) {
+      console.error('Evaluation error:', error);
+      return "Error";
+    }
+  };
+
+  // Helper function to check if expression is complete and valid
+  const isExpressionComplete = (expr: string): boolean => {
+    // Check for mismatched parentheses
+    let openCount = 0;
+    for (let char of expr) {
+      if (char === '(') openCount++;
+      else if (char === ')') openCount--;
+      if (openCount < 0) return false; // More closing than opening
+    }
+    
+    // Expression is incomplete if:
+    // 1. Has unmatched opening parentheses
+    // 2. Ends with an operator
+    // 3. Ends with a function name without parentheses
+    if (openCount > 0) return false;
+    if (/[+\-×÷%^]$/.test(expr)) return false;
+    if (/[a-z]+$/.test(expr)) return false; // Ends with function name
+    
+    return true;
+  };
+
+  // Helper function to evaluate expressions without scientific functions (to avoid recursion)
+  const evaluateBasicExpression = (expr: string): number | string => {
+    try {
+      // Check if expression is complete before evaluating
+      if (!isExpressionComplete(expr)) {
+        return "Incomplete";
+      }
+      
+      if (/[+\-×÷%^]$/.test(expr)) {
+        expr = expr.slice(0, -1);
+      }
+      
+      // Convert constants to numbers
+      let processedExpr = convertConstantsToNumbers(expr);
+      
+      // For simple expressions with just one number, return it directly
+      if (/^\d+\.?\d*$/.test(processedExpr)) {
+        return parseFloat(processedExpr);
+      }
+      
+      // Evaluate using the selected calculation mode
+      if (calculationMode === 'bodmas') {
+        return evaluateBODMAS(processedExpr);
+      } else {
+        return evaluateLeftToRight(processedExpr);
+      }
+    } catch (error) {
+      console.error('Basic evaluation error:', error);
+      return "Error";
+    }
+  };
+
+  const evaluateExpression = (expr: string): number | string => {
+    try {
+      // Check if expression is complete before evaluating
+      if (!isExpressionComplete(expr)) {
+        return "Incomplete";
+      }
+      
+      if (/[+\-×÷%^]$/.test(expr)) {
+        expr = expr.slice(0, -1);
+      }
+      
+      // Use the enhanced evaluation function
+      return evaluateWithScientificFunctions(expr);
     } catch {
       return "Error";
     }
   };
 
   const handleOperator = (op: string) => {
-    triggerHaptic('light');
     
     if (showingResult) {
       const result = evaluateExpression(expression);
@@ -422,8 +640,6 @@ export const BasicCalculator: React.FC = () => {
   const equals = () => {
     if (showingResult) return;
     
-    triggerHaptic('heavy');
-    
     // Clean the expression by removing trailing operators
     const cleanExpression = expression.replace(/[+\-×÷%^]$/, '');
     
@@ -449,151 +665,109 @@ export const BasicCalculator: React.FC = () => {
     setShowingResult(true);
   };
 
-  // Scientific calculator functions
-  const factorial = (n: number): number => {
-    if (n < 0) return NaN;
-    if (n === 0 || n === 1) return 1;
-    let result = 1;
-    for (let i = 2; i <= n; i++) {
-      result *= i;
-    }
-    return result;
-  };
-
-
-  const squareRoot = (value: number): number => {
-    return Math.sqrt(value);
-  };
-
-  const logarithm = (value: number): number => {
-    return Math.log10(value);
-  };
-
-  const naturalLog = (value: number): number => {
-    return Math.log(value);
-  };
-
-  const sine = (value: number): number => {
-    const radians = isDegreeMode ? (value * Math.PI) / 180 : value;
-    return Math.sin(radians);
-  };
-
-  const cosine = (value: number): number => {
-    const radians = isDegreeMode ? (value * Math.PI) / 180 : value;
-    return Math.cos(radians);
-  };
-
-  const tangent = (value: number): number => {
-    const radians = isDegreeMode ? (value * Math.PI) / 180 : value;
-    return Math.tan(radians);
-  };
-
-  const reciprocal = (value: number): number => {
-    return value !== 0 ? 1 / value : Infinity;
-  };
+  // Scientific calculator functions (now handled in evaluateWithScientificFunctions)
 
   const toggleSign = () => {
     const value = parseFloat(display);
-    setDisplay((value * -1).toString());
+    const newValue = value * -1;
+    setExpression(`±(${value})`);
+    setDisplay(`±(${value})`);
+    setOperationDisplay(`±(${value}) = ${newValue}`);
+    setIsCalculationComplete(true);
+    setShowingResult(true);
   };
 
   const memoryAdd = () => {
-    setMemory(memory + parseFloat(display));
+    const currentValue = parseFloat(display);
+    const newMemory = memory + currentValue;
+    setMemory(newMemory);
+    setExpression(`M+(${currentValue})`);
+    setDisplay(String(newMemory));
+    setOperationDisplay(`M+(${currentValue}) = ${newMemory}`);
+    setIsCalculationComplete(true);
+    setShowingResult(true);
   };
 
   const memorySubtract = () => {
-    setMemory(memory - parseFloat(display));
+    const currentValue = parseFloat(display);
+    const newMemory = memory - currentValue;
+    setMemory(newMemory);
+    setExpression(`M-(${currentValue})`);
+    setDisplay(String(newMemory));
+    setOperationDisplay(`M-(${currentValue}) = ${newMemory}`);
+    setIsCalculationComplete(true);
+    setShowingResult(true);
   };
 
   const memoryRecall = () => {
-    setDisplay(memory.toString());
+    setExpression(`MR`);
+    setDisplay(String(memory));
+    setOperationDisplay(`MR = ${memory}`);
+    setIsCalculationComplete(true);
+    setShowingResult(true);
   };
 
   const memoryClear = () => {
     setMemory(0);
+    setExpression(`MC`);
+    setDisplay(`0`);
+    setOperationDisplay(`MC = 0`);
+    setIsCalculationComplete(true);
+    setShowingResult(true);
   };
 
 
   const insertConstant = (constant: string) => {
-    let value: number;
-    switch (constant) {
-      case 'π':
-        value = Math.PI;
-        break;
-      case 'e':
-        value = Math.E;
-        break;
-      default:
-        value = 0;
+    // Constants are handled in evaluateWithScientificFunctions
+    
+    // If showing result, start new expression with constant
+    if (showingResult) {
+      setExpression(constant);
+      setDisplay(constant);
+      setShowingResult(false);
+    } else {
+      // If expression is '0', replace it with constant
+      if (expression === '0') {
+        setExpression(constant);
+        setDisplay(constant);
+      } else {
+        // Add constant to current expression
+        const newExpression = expression + constant;
+        setExpression(newExpression);
+        setDisplay(newExpression);
+      }
     }
-    setDisplay(value.toString());
   };
 
   const performScientificFunction = (func: string) => {
-    triggerHaptic('medium');
     
-    const value = parseFloat(display);
-    let result: number;
-    let calculationString: string;
-
-    // Check for invalid inputs
-    if (isNaN(value)) {
-      setDisplay("Error");
-      return;
-    }
+    // Instead of processing immediately, just add the function to expression
+    let functionExpression: string;
 
     switch (func) {
       case 'sin':
-        result = sine(value);
-        calculationString = `sin(${value}) = ${result}`;
+        functionExpression = 'sin(';
         break;
       case 'cos':
-        result = cosine(value);
-        calculationString = `cos(${value}) = ${result}`;
+        functionExpression = 'cos(';
         break;
       case 'tan':
-        result = tangent(value);
-        calculationString = `tan(${value}) = ${result}`;
+        functionExpression = 'tan(';
         break;
       case 'lg':
-        if (value <= 0) {
-          setDisplay("Error");
-          return;
-        }
-        result = logarithm(value);
-        calculationString = `log(${value}) = ${result}`;
+        functionExpression = 'log(';
         break;
       case 'ln':
-        if (value <= 0) {
-          setDisplay("Error");
-          return;
-        }
-        result = naturalLog(value);
-        calculationString = `ln(${value}) = ${result}`;
+        functionExpression = 'ln(';
         break;
       case '√x':
-        if (value < 0) {
-          setDisplay("Error");
-          return;
-        }
-        result = squareRoot(value);
-        calculationString = `√${value} = ${result}`;
+        functionExpression = '√';
         break;
       case 'x!':
-        if (value < 0 || value > 170 || !Number.isInteger(value)) {
-          setDisplay("Error");
-          return;
-        }
-        result = factorial(Math.floor(value));
-        calculationString = `${Math.floor(value)}! = ${result}`;
-        break;
+        // For factorial, we need a number first
+        return;
       case '1/x':
-        if (value === 0) {
-          setDisplay("Error");
-          return;
-        }
-        result = reciprocal(value);
-        calculationString = `1/${value} = ${result}`;
+        functionExpression = '1/';
         break;
       case 'x^y':
         // This will be handled differently as it needs two operands
@@ -602,20 +776,26 @@ export const BasicCalculator: React.FC = () => {
         return;
     }
 
-    // Check for invalid results
-    if (isNaN(result) || !isFinite(result)) {
-      setDisplay("Error");
-      return;
+    // Add the function to the expression
+    if (showingResult) {
+      // If showing a result, start new expression with the function
+      setExpression(functionExpression);
+      setDisplay(functionExpression);
+      setShowingResult(false);
+    } else {
+      // If expression is '0', replace it with the function
+      if (expression === '0') {
+        setExpression(functionExpression);
+        setDisplay(functionExpression);
+      } else {
+        // Add function to current expression
+        const newExpression = expression + functionExpression;
+        setExpression(newExpression);
+        setDisplay(newExpression);
+      }
     }
-
-    setDisplay(result.toString());
-
-    // Add to history
-    addToHistory({
-      calculation: calculationString,
-      result: result.toString(),
-      type: 'scientific'
-    });
+    
+    setIsCalculationComplete(false);
   };
 
   const handleButtonPress = (value: string) => {
@@ -709,11 +889,23 @@ export const BasicCalculator: React.FC = () => {
       backgroundColor: colors.background,
     },
     displayContainer: {
-      height: isExpanded ? '46%' : '46%', // Fixed height
+      height: isExpanded ? '39%' : '38.5%', // Fixed height
       paddingHorizontal: 16, // 16px horizontal padding
-      paddingTop: insets.top + 65 + 12, // Status bar + tab bar + 12px top padding
+      // paddingTop: insets.top + 65 + 12, // Status bar + tab bar + 12px top padding
+      paddingTop: 12,
       paddingBottom: 8, // 8px bottom padding
       justifyContent: 'flex-end',
+    },
+    layoutIndicator: {
+      alignItems: 'center',
+      paddingVertical: 4,
+      marginBottom: 4,
+    },
+    layoutIndicatorText: {
+      color: colors.textSecondary,
+      fontSize: 12,
+      fontWeight: '500',
+      opacity: 0.7,
     },
     currentDisplay: {
       alignItems: 'flex-end',
@@ -725,19 +917,18 @@ export const BasicCalculator: React.FC = () => {
       flex: 1,
     },
     operationDisplay: {
-      color: colors.text,
-      fontSize: Math.min(screenHeight * 0.08, 64), // Large font size for input area
-      fontWeight: '400',
+      color: isCalculationComplete ? colors.textSecondary : colors.text,
+      fontWeight: isCalculationComplete ? '400' : '400', // Lighter when showing result
       textAlign: 'right',
       marginBottom: 8,
       minHeight: 40,
       flex: 1,
-      lineHeight: Math.min(screenHeight * 0.08, 64) * 1.2, // Better line spacing
+      opacity: isCalculationComplete ? 0.6 : 1, // More transparent when showing result
     },
     currentNumber: {
       color: isCalculationComplete ? colors.text : colors.textSecondary,
       fontSize: isCalculationComplete ? Math.min(screenHeight * 0.1, 80) : Math.min(screenHeight * 0.06, 48), // Bigger when complete
-      fontWeight: isCalculationComplete ? '500' : '400', // Bolder when complete
+      fontWeight: isCalculationComplete ? '400' : '400', // Much bolder when complete
       textAlign: 'right',
       minHeight: isCalculationComplete ? 110 : 80,
       lineHeight: isCalculationComplete ? Math.min(screenHeight * 0.1, 80) * 1.2 : Math.min(screenHeight * 0.06, 48) * 1.2,
@@ -793,6 +984,12 @@ export const BasicCalculator: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.displayContainer}>
+        {/* Layout indicator */}
+        {/* <View style={styles.layoutIndicator}>
+          <Text style={styles.layoutIndicatorText}>
+            {numberLayout === 'keypad' ? '📱 Keypad' : '🧮 Calculator'}
+          </Text>
+        </View> */}
         <ScrollView 
           style={styles.scrollableDisplay}
           contentContainerStyle={styles.currentDisplay}
@@ -817,21 +1014,31 @@ export const BasicCalculator: React.FC = () => {
               numberOfLines={0} // Allow multiple lines
               adjustsFontSizeToFit={false} // Don't auto-shrink, let it wrap
             >
-              {expression.replace(/[+\-×÷%^]$/, '')}
+              {expression}
             </Text>
           ) : operationDisplay ? (
             <Text 
               style={[
                 styles.operationDisplay,
                 {
-                  fontSize: Math.max(
-                    Math.min(screenHeight * 0.08, 64) - (operationDisplay.length * 0.8),
-                    Math.min(screenHeight * 0.025, 16)
-                  ),
-                  lineHeight: Math.max(
-                    Math.min(screenHeight * 0.08, 64) - (operationDisplay.length * 0.8),
-                    Math.min(screenHeight * 0.025, 16)
-                  ) * 1.3
+                  fontSize: isCalculationComplete 
+                    ? Math.max(
+                        Math.min(screenHeight * 0.06, 48) - (operationDisplay.length * 0.3),
+                        Math.min(screenHeight * 0.02, 12)
+                      )
+                    : Math.max(
+                        Math.min(screenHeight * 0.08, 64) - (operationDisplay.length * 0.8),
+                        Math.min(screenHeight * 0.025, 16)
+                      ),
+                  lineHeight: isCalculationComplete 
+                    ? Math.max(
+                        Math.min(screenHeight * 0.06, 48) - (operationDisplay.length * 0.3),
+                        Math.min(screenHeight * 0.02, 12)
+                      ) * 1.3
+                    : Math.max(
+                        Math.min(screenHeight * 0.08, 64) - (operationDisplay.length * 0.8),
+                        Math.min(screenHeight * 0.025, 16)
+                      ) * 1.3
                 }
               ]}
               numberOfLines={0} // Allow multiple lines
@@ -844,7 +1051,17 @@ export const BasicCalculator: React.FC = () => {
             {showingResult ? display : (() => {
               if (expression && expression !== '0' && expression.match(/[+\-×÷%^]/)) {
                 const preview = evaluateExpression(expression);
-                return typeof preview === 'number' ? String(preview) : display;
+                // Only show preview if expression is complete and valid
+                if (preview !== "Incomplete" && preview !== "Error") {
+                  return typeof preview === 'number' ? String(preview) : display;
+                }
+              }
+              // If expression contains only constants, show their numeric values
+              if (expression === 'π') {
+                return String(Math.PI);
+              }
+              if (expression === 'e') {
+                return String(Math.E);
               }
               return display;
             })()}
@@ -920,15 +1137,31 @@ export const BasicCalculator: React.FC = () => {
               <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('x!')}>
                 <Text style={styles.buttonText}>x!</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('7')}>
-                <Text style={styles.buttonText}>7</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('8')}>
-                <Text style={styles.buttonText}>8</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('9')}>
-                <Text style={styles.buttonText}>9</Text>
-              </TouchableOpacity>
+              {numberLayout === 'calculator' ? (
+                <>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('7')}>
+                    <Text style={styles.buttonText}>7</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('8')}>
+                    <Text style={styles.buttonText}>8</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('9')}>
+                    <Text style={styles.buttonText}>9</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('1')}>
+                    <Text style={styles.buttonText}>1</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('2')}>
+                    <Text style={styles.buttonText}>2</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('3')}>
+                    <Text style={styles.buttonText}>3</Text>
+                  </TouchableOpacity>
+                </>
+              )}
               <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('×')}>
                 <Text style={styles.orangeText}>×</Text>
               </TouchableOpacity>
@@ -938,15 +1171,31 @@ export const BasicCalculator: React.FC = () => {
               <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('1/x')}>
                 <Text style={styles.buttonText}>1/x</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('4')}>
-                <Text style={styles.buttonText}>4</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('5')}>
-                <Text style={styles.buttonText}>5</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('6')}>
-                <Text style={styles.buttonText}>6</Text>
-              </TouchableOpacity>
+              {numberLayout === 'calculator' ? (
+                <>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('4')}>
+                    <Text style={styles.buttonText}>4</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('5')}>
+                    <Text style={styles.buttonText}>5</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('6')}>
+                    <Text style={styles.buttonText}>6</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('4')}>
+                    <Text style={styles.buttonText}>4</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('5')}>
+                    <Text style={styles.buttonText}>5</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('6')}>
+                    <Text style={styles.buttonText}>6</Text>
+                  </TouchableOpacity>
+                </>
+              )}
               <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('-')}>
                 <Text style={styles.orangeText}>-</Text>
               </TouchableOpacity>
@@ -956,15 +1205,31 @@ export const BasicCalculator: React.FC = () => {
               <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('π')}>
                 <Text style={styles.buttonText}>π</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('1')}>
-                <Text style={styles.buttonText}>1</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('2')}>
-                <Text style={styles.buttonText}>2</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('3')}>
-                <Text style={styles.buttonText}>3</Text>
-              </TouchableOpacity>
+              {numberLayout === 'calculator' ? (
+                <>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('1')}>
+                    <Text style={styles.buttonText}>1</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('2')}>
+                    <Text style={styles.buttonText}>2</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('3')}>
+                    <Text style={styles.buttonText}>3</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('7')}>
+                    <Text style={styles.buttonText}>7</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('8')}>
+                    <Text style={styles.buttonText}>8</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('9')}>
+                    <Text style={styles.buttonText}>9</Text>
+                  </TouchableOpacity>
+                </>
+              )}
               <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('+')}>
                 <Text style={styles.orangeText}>+</Text>
               </TouchableOpacity>
@@ -1028,15 +1293,31 @@ export const BasicCalculator: React.FC = () => {
         </View>
         {/* Row 3 */}
         <View style={styles.keypadRow}>
-          <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('7')}>
-            <Text style={styles.buttonText}>7</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('8')}>
-            <Text style={styles.buttonText}>8</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('9')}>
-            <Text style={styles.buttonText}>9</Text>
-          </TouchableOpacity>
+          {numberLayout === 'calculator' ? (
+            <>
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('7')}>
+                <Text style={styles.buttonText}>7</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('8')}>
+                <Text style={styles.buttonText}>8</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('9')}>
+                <Text style={styles.buttonText}>9</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('1')}>
+                <Text style={styles.buttonText}>1</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('2')}>
+                <Text style={styles.buttonText}>2</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('3')}>
+                <Text style={styles.buttonText}>3</Text>
+              </TouchableOpacity>
+            </>
+          )}
           <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('×')}>
             <Text style={styles.buttonText}>×</Text>
           </TouchableOpacity>
@@ -1058,15 +1339,31 @@ export const BasicCalculator: React.FC = () => {
         </View>
         {/* Row 5 */}
         <View style={styles.keypadRow}>
-          <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('1')}>
-            <Text style={styles.buttonText}>1</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('2')}>
-            <Text style={styles.buttonText}>2</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('3')}>
-            <Text style={styles.buttonText}>3</Text>
-          </TouchableOpacity>
+          {numberLayout === 'calculator' ? (
+            <>
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('1')}>
+                <Text style={styles.buttonText}>1</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('2')}>
+                <Text style={styles.buttonText}>2</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('3')}>
+                <Text style={styles.buttonText}>3</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('7')}>
+                <Text style={styles.buttonText}>7</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('8')}>
+                <Text style={styles.buttonText}>8</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('9')}>
+                <Text style={styles.buttonText}>9</Text>
+              </TouchableOpacity>
+            </>
+          )}
           <TouchableOpacity style={styles.button} onPress={() => handleButtonPress('+')}>
             <Text style={styles.buttonText}>+</Text>
           </TouchableOpacity>

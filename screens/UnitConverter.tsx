@@ -42,7 +42,8 @@ export const UnitConverter: React.FC = () => {
     converterContainer: {
       flex: 1,
       paddingHorizontal: 12, // 12px horizontal padding
-      paddingTop: insets.top + 65 + 12, // Status bar + tab bar + 12px top padding
+      // paddingTop: insets.top + 65 + 12, // Status bar + tab bar + 12px top padding
+      paddingTop: 12,
       paddingBottom: 16, // 16px bottom padding for scroll clearance
     },
     converterGrid: {

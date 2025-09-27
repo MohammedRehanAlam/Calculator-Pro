@@ -74,12 +74,12 @@ export const HistoryScreen: React.FC = () => {
           const expression = item.calculation.includes(' = ') 
             ? item.calculation.split(' = ')[0] 
             : item.calculation;
-          return `${expression} \n= ${item.result}`;
+          return `${expression} \n= *${item.result}*`;
         })
         .join('\n\n');
 
       await Share.share({
-        message: `My Calculator Pro History:\n\n${shareText}`,
+        message: `*My Calculator Pro History:*\n\n${shareText}`,
         title: 'Calculator Pro History'
       });
     } catch (error) {

@@ -5,7 +5,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
@@ -17,7 +17,7 @@ export default function TabLayout() {
           backgroundColor: colors.surface,
           borderBottomColor: colors.border,
           borderTopWidth: 0,
-          borderBottomWidth: 0,
+          borderBottomWidth: 1,
           position: 'absolute',
           top: insets.top,
           left: 0,
@@ -34,7 +34,10 @@ export default function TabLayout() {
         tabBarIconStyle: {
           marginTop: 8,
         },
-        headerShown: false, // Hide default headers for tab screens
+        headerShown: true, // Hide default headers for tab screens
+        headerStyle: {
+          backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7'
+        }
       }}
     >
       <Tabs.Screen
